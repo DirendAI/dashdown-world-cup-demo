@@ -1,6 +1,11 @@
 ---
 title: Team profile
 sidebar_label: Team profile
+# Enumerate every team code so `dashdown build` pre-renders one static page
+# per nation (without this, the [code] route is skipped and 404s on Pages).
+static_paths:
+  connector: main
+  query: SELECT code FROM teams ORDER BY code
 ---
 
 :::query name=team connector=main
