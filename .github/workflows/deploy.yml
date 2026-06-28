@@ -43,10 +43,11 @@ jobs:
         run: dashdown build -o ./dist
 
       - name: Inject PostHog analytics
-        # No-op unless the POSTHOG_KEY repo variable is set. The project key is
-        # public/write-only, so a repo *variable* (not secret) is the right home.
+        # No-op unless the POSTHOG_KEY secret is set. (The project key is actually
+        # public/write-only and ends up in the page source, but it's stored as a
+        # secret here, which works fine for same-repo push/schedule/dispatch runs.)
         env:
-          POSTHOG_KEY: ${{ vars.POSTHOG_KEY }}
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
           POSTHOG_HOST: ${{ vars.POSTHOG_HOST }}
         run: python .github/scripts/inject_posthog.py ./dist
 
