@@ -1,0 +1,28 @@
+title: FIFA World Cup 2026
+
+branding:
+  # Chart series colours — a FIFA-inspired palette (federation blue, trophy gold,
+  # red, pitch green, then bright accents). Keep in sync with assets/custom.css.
+  palette:
+    - "#1D4F91"   # FIFA blue
+    - "#FFC72C"   # trophy gold
+    - "#E4002B"   # red
+    - "#159A52"   # pitch green
+    - "#41B6E6"   # sky
+    - "#7A5FCB"   # violet
+    - "#FF7A00"   # orange
+    - "#00A39B"   # teal
+    - "#C2185B"   # magenta
+    - "#8D6E63"   # clay
+
+format:
+  locale: en-US
+  date_format: MMM D
+
+sidebar:
+  collapsed: false
+  toggle: true
+
+search:
+  enabled: true
+  placeholder: "Search teams, venues, pages…"

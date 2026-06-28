@@ -1,0 +1,57 @@
+/* Bracket — knockout tree */
+.wc-bracket { width: 100%; }
+.wc-br-skel { padding: 2rem; text-align: center; color: oklch(var(--bc) / 0.6); font-size: 0.9rem; }
+.wc-br-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.wc-br-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 0.5rem; }
+.wc-br-stage { position: relative; }
+
+.wc-br-links { position: absolute; inset: 0; pointer-events: none; }
+.wc-br-link { fill: none; stroke: oklch(var(--b3)); stroke-width: 1.6; }
+
+.wc-br-colhead {
+  position: absolute; top: 0; text-align: center; font-size: 0.7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.03em; padding: 0.25rem 0;
+  border-radius: 0.4rem; color: #fff;
+}
+.wc-br-colhead.r-R32   { background: #1D4F91; }
+.wc-br-colhead.r-R16   { background: #2E6FC9; }
+.wc-br-colhead.r-QF    { background: #159A52; }
+.wc-br-colhead.r-SF    { background: #FF7A00; }
+.wc-br-colhead.r-Final { background: linear-gradient(90deg, #d9a400, #FFC72C); color: #21283a; }
+
+.wc-br-card {
+  position: absolute; box-sizing: border-box;
+  background: oklch(var(--b1)); border: 1px solid oklch(var(--b3));
+  border-left: 3px solid var(--wc-blue); border-radius: 0.5rem;
+  padding: 0.28rem 0.45rem; box-shadow: 0 1px 3px rgba(11,27,51,0.08);
+}
+.wc-br-card.r-R32   { border-left-color: #1D4F91; }
+.wc-br-card.r-R16   { border-left-color: #2E6FC9; }
+.wc-br-card.r-QF    { border-left-color: #159A52; }
+.wc-br-card.r-SF    { border-left-color: #FF7A00; }
+.wc-br-card.r-Final { border-left-color: #FFC72C; box-shadow: 0 2px 10px rgba(255,199,44,0.35); }
+.wc-br-card.r-3rd   { border-left-color: #b08900; }
+
+.wc-br-meta {
+  display: flex; justify-content: space-between;
+  font-size: 0.6rem; font-weight: 600; color: oklch(var(--bc) / 0.5);
+  margin-bottom: 0.18rem;
+}
+.wc-br-team {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; line-height: 1.5;
+}
+.wc-br-team.win .wc-br-name { font-weight: 800; }
+.wc-br-team.ref .wc-br-name { color: oklch(var(--bc) / 0.55); font-style: italic; font-size: 0.72rem; }
+.wc-br-flag { font-size: 1rem; width: 1.1rem; text-align: center; }
+.wc-br-seed { color: oklch(var(--bc) / 0.35); width: 1.1rem; text-align: center; font-size: 0.8rem; }
+.wc-br-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wc-br-score {
+  font-variant-numeric: tabular-nums; font-weight: 800; font-size: 0.82rem;
+  min-width: 1rem; text-align: right;
+}
+
+.wc-br-third {
+  margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed oklch(var(--b3));
+}
+.wc-br-third-label { font-size: 0.78rem; font-weight: 700; color: oklch(var(--bc) / 0.7); margin-bottom: 0.4rem; }

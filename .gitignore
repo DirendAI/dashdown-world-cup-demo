@@ -1,0 +1,9 @@
+# Dashdown build artifacts
+.dist/
+dist/
+.pdf/
+.shots/
+
+# Python
+__pycache__/
+*.py[cod]

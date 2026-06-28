@@ -1,0 +1,194 @@
+/* ===========================================================================
+   FIFA World Cup 2026 — project reskin (auto-linked LAST, so order wins).
+   Palette: federation blue #1D4F91 · trophy gold #FFC72C · pitch green #159A52
+   ===========================================================================*/
+
+/* 1) Design tokens ---------------------------------------------------------*/
+:root {
+  --dashdown-radius-card: 0.9rem;
+  --dashdown-radius-control: 0.55rem;
+  --dashdown-grid-gap: 1.1rem;
+  --dashdown-space-section: 1.9rem;
+  --sidebar-width: 264px;
+
+  /* brand constants reused by custom components + chrome */
+  --wc-blue: #1D4F91;
+  --wc-blue-deep: #122f5c;
+  --wc-navy: #0b1b33;
+  --wc-gold: #FFC72C;
+  --wc-red: #E4002B;
+  --wc-green: #159A52;
+  --wc-sky: #41B6E6;
+}
+
+/* 2) Brand colours — re-pin DaisyUI's oklch vars, scoped per theme ----------*/
+[data-theme="light"] {
+  --p:  43.1% 0.121 256.8;   /* FIFA blue            */
+  --pf: 36.0% 0.110 257.0;   /* darker blue (hover)  */
+  --pc: 100% 0 0;            /* text on blue         */
+  --s:  85.7% 0.165 86.5;    /* trophy gold          */
+  --sf: 79.0% 0.160 84.0;
+  --sc: 26.0% 0.048 259.9;   /* dark text on gold    */
+  --a:  60.4% 0.151 152.5;   /* pitch green          */
+  --ac: 100% 0 0;
+  --b1: 100% 0 0;            /* cards / header        */
+  --b2: 97.3% 0.006 264.5;   /* page background       */
+  --b3: 91.3% 0.016 257.2;   /* hairline borders      */
+  --bc: 26.0% 0.048 259.9;   /* body text             */
+  --n:  28.3% 0.069 258.9;   /* neutral (deep navy)   */
+  --nc: 98% 0 0;
+  --su: 60.4% 0.151 152.5;   /* success = green       */
+  --suc: 100% 0 0;
+  --er: 57.9% 0.234 23.9;    /* error = red           */
+  --erc: 100% 0 0;
+  --wa: 85.7% 0.165 86.5;    /* warning = gold        */
+  --in: 62.0% 0.130 240.0;
+}
+
+[data-theme="dark"] {
+  --p:  64.0% 0.145 254.0;   /* brighter blue on navy */
+  --pf: 56.0% 0.150 256.0;
+  --pc: 12.0% 0.03 258;
+  --s:  85.7% 0.165 86.5;    /* gold                  */
+  --sf: 79.0% 0.160 84.0;
+  --sc: 22.0% 0.050 260;
+  --a:  66.0% 0.150 153.0;   /* green                 */
+  --ac: 12% 0.03 258;
+  --b1: 24.0% 0.055 258.5;   /* raised cards          */
+  --b2: 16.5% 0.040 259.0;   /* page background       */
+  --b3: 34.0% 0.066 258.0;   /* borders               */
+  --bc: 92.0% 0.012 255.0;   /* body text             */
+  --n:  20.0% 0.045 258.0;
+  --nc: 95% 0 0;
+  --su: 66.0% 0.150 153.0;
+  --suc: 12% 0.03 258;
+  --er: 64.0% 0.200 24.0;
+  --erc: 12% 0.03 258;
+  --wa: 85.7% 0.165 86.5;
+  --in: 70.0% 0.120 240.0;
+}
+
+/* 3) App chrome — a branded federation-blue top bar in BOTH themes ----------*/
+.dashdown-header {
+  background: linear-gradient(100deg, var(--wc-blue-deep) 0%, var(--wc-blue) 55%, #2767b8 100%);
+  border-bottom: 3px solid var(--wc-gold);
+  box-shadow: 0 2px 14px rgba(11, 27, 51, 0.28);
+}
+/* Make header text + controls legible on the blue bar */
+.dashdown-header,
+.dashdown-header a,
+.dashdown-header button,
+.dashdown-brand-title { color: #fff; }
+.dashdown-brand-title {
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+.dashdown-header .dashdown-brand-title::before {
+  content: "🏆";
+  margin-right: 0.45rem;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+}
+/* header search + theme toggle: glassy on blue */
+.dashdown-header input,
+.dashdown-header .btn,
+.dashdown-header [class*="input"] {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #fff !important;
+}
+.dashdown-header input::placeholder { color: rgba(255,255,255,0.7) !important; }
+
+/* Sidebar: gold accent on the active route */
+.dashdown-sidenav-link[aria-current="page"] {
+  box-shadow: inset 3px 0 0 0 var(--wc-gold);
+  font-weight: 700;
+}
+
+/* Cards: a touch more depth + a hairline */
+.dashdown-chart, .dashdown-table {
+  border: 1px solid oklch(var(--b3));
+  box-shadow: 0 1px 2px rgba(11, 27, 51, 0.05);
+}
+
+/* 4) Prose typography ------------------------------------------------------*/
+.dashdown-prose h2 {
+  border-bottom: 2px solid oklch(var(--b3));
+  padding-bottom: 0.3rem;
+  letter-spacing: -0.01em;
+}
+.dashdown-prose h2::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem; height: 1.05rem;
+  margin-right: 0.55rem;
+  vertical-align: -2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--wc-gold), var(--wc-blue));
+}
+.dashdown-prose a { text-underline-offset: 2px; }
+
+/* ===========================================================================
+   Shared dashboard widgets (used across pages)
+   ===========================================================================*/
+
+/* Hero banner ------------------------------------------------------------- */
+.wc-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--dashdown-radius-card);
+  padding: 1.6rem 1.8rem;
+  margin: 0.2rem 0 1.4rem;
+  color: #fff;
+  background:
+    radial-gradient(1200px 200px at 100% -40%, rgba(255,199,44,0.35), transparent 60%),
+    linear-gradient(110deg, var(--wc-navy) 0%, var(--wc-blue-deep) 45%, var(--wc-blue) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(11,27,51,0.35);
+}
+.wc-hero::after {           /* pitch stripes flourish */
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 38px, transparent 38px 76px);
+  pointer-events: none;
+}
+/* The framework styles `.dashdown-main h1` with !important (small + dark), so the
+   hero title must override with !important to stay big and white on the gradient. */
+.wc-hero h1 {
+  margin: 0 0 0.4rem !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.02em;
+  color: #fff !important;
+  border: 0 !important;
+}
+.wc-hero p  { margin: 0 !important; color: rgba(255,255,255,0.92) !important; max-width: 60ch; }
+.wc-hero .wc-hero-flags { font-size: 1.5rem; letter-spacing: 0.15rem; margin-bottom: 0.5rem; }
+.wc-hero .wc-chip {
+  display: inline-block; margin-top: 0.9rem; padding: 0.28rem 0.7rem;
+  background: var(--wc-gold); color: #21283a; font-weight: 700; font-size: 0.8rem;
+  border-radius: 999px;
+}
+
+/* Stage / status badges --------------------------------------------------- */
+.wc-badge {
+  display: inline-block; padding: 0.12rem 0.55rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; line-height: 1.5;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.wc-badge.group     { background: rgba(29,79,145,0.12);  color: var(--wc-blue);  border-color: rgba(29,79,145,0.25); }
+.wc-badge.knockout  { background: rgba(228,0,43,0.12);   color: var(--wc-red);   border-color: rgba(228,0,43,0.25); }
+.wc-badge.advanced  { background: rgba(21,154,82,0.14);  color: var(--wc-green); border-color: rgba(21,154,82,0.3); }
+.wc-badge.gold      { background: var(--wc-gold); color:#21283a; }
+[data-theme="dark"] .wc-badge.group    { color: #7fb0ff; }
+[data-theme="dark"] .wc-badge.knockout { color: #ff8aa0; }
+[data-theme="dark"] .wc-badge.advanced { color: #5fd99a; }
+
+/* Make KPI counters read as branded tiles --------------------------------- */
+.dashdown-counter, .dashdown-kpi, [class*="counter"] { position: relative; }
+
+/* Flag emoji sizing in tables/prose */
+.wc-flag { font-size: 1.15rem; vertical-align: -1px; }
+
+/* Tighten table row height for the dense standings tables */
+.dashdown-table table td, .dashdown-table table th { padding-top: 0.4rem; padding-bottom: 0.4rem; }

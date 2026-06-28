@@ -1,0 +1,6 @@
+main:
+  type: worldcup
+  # openfootball's live World Cup 2026 feed — fetched on demand, no checked-in data.
+  base_url: https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026
+  # Re-fetch upstream at most once every N seconds (0 = only on first load / restart).
+  refresh_ttl: 180
