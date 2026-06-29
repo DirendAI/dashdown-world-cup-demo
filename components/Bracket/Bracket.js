@@ -1,10 +1,23 @@
-// Bracket — single-elimination knockout tree, reconstructed from W#/L# refs.
+// Bracket — single-elimination knockout tree, built from a fixed feeder map
+// (with live W#/L# refs as a fallback) so it stays intact as results come in.
 import { fetchQueryData, recordsOf, esc } from "dashdown/core.js";
 
 const COL = { R32: 0, R16: 1, QF: 2, SF: 3, Final: 4 };
 const ROUND_NAME = { R32: "Round of 32", R16: "Round of 16", QF: "Quarter-finals", SF: "Semi-finals", Final: "Final" };
-const CARD_W = 178, COL_W = 214, ROW_H = 72, CARD_H = 58, PAD_T = 8;
+const CARD_W = 178, COL_W = 214, ROW_H = 92, CARD_H = 58, PAD_T = 8;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Which two earlier matches feed each knockout match (2026 schedule). The feed
+// overwrites a slot's "W##" ref with the winner's name once that match is played
+// (e.g. M90 becomes "Canada vs W75"), which would otherwise drop the feeder from
+// the tree — losing both the connector line and the played match itself. This map
+// keeps the structure intact regardless of how many results are in.
+const FEEDERS = {
+  89: [74, 77], 90: [73, 75], 91: [76, 78], 92: [79, 80],
+  93: [83, 84], 94: [81, 82], 95: [86, 88], 96: [85, 87],
+  97: [89, 90], 98: [93, 94], 99: [91, 92], 100: [95, 96],
+  101: [97, 98], 102: [99, 100], 104: [101, 102],
+};
 
 function refNum(t) { const m = /^[WL](\d+)$/.exec(String(t || "")); return m ? Number(m[1]) : null; }
 function num(v) { return v === "" || v == null ? null : Number(v); }
@@ -60,12 +73,19 @@ function draw(root, records, cfg) {
   const third = records.find((r) => r.round_short === "3rd Place");
   if (!final) { root.innerHTML = `<div class="wc-br-skel">No knockout matches yet.</div>`; return; }
 
+  // Feeder matches for r: the fixed 2026 map first (survives result resolution),
+  // falling back to live W#/L# refs for anything not in the map.
+  const kidsOf = (r) => {
+    const nums = FEEDERS[Number(r.num)] || [refNum(r.team1), refNum(r.team2)].filter((n) => n != null);
+    return nums.map((n) => byNum[n]).filter(Boolean);
+  };
+
   const pos = {};
   let leaf = 0;
   (function place(r) {
     if (!r) return null;
     const col = COL[r.round_short] ?? 0;
-    const kids = [refNum(r.team1), refNum(r.team2)].map((n) => (n != null ? byNum[n] : null)).filter(Boolean);
+    const kids = kidsOf(r);
     let row;
     if (!kids.length) row = leaf++;
     else { const rows = kids.map(place).filter((v) => v != null); row = rows.reduce((a, b) => a + b, 0) / rows.length; }
@@ -88,7 +108,7 @@ function draw(root, records, cfg) {
   svg.setAttribute("width", totalW);
   svg.setAttribute("height", totalH);
   Object.values(pos).forEach(({ col, row, rec }) => {
-    const kids = [refNum(rec.team1), refNum(rec.team2)].map((n) => (n != null ? byNum[n] : null)).filter(Boolean);
+    const kids = kidsOf(rec);
     const px = cx(col), py = cy(row) + cardH / 2;
     kids.forEach((k) => {
       const kp = pos[Number(k.num)];
