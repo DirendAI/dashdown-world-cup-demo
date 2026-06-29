@@ -8,10 +8,24 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 
 function refNum(t) { const m = /^[WL](\d+)$/.exec(String(t || "")); return m ? Number(m[1]) : null; }
 function num(v) { return v === "" || v == null ? null : Number(v); }
-function kickoff(t) { return String(t || "").split(" ")[0] || ""; }
 function shortDate(iso) {
   const p = String(iso).slice(0, 10).split("-").map(Number);
   return p[1] ? `${MON[p[1] - 1]} ${p[2]}` : "";
+}
+// Kickoff date + time in the *visitor's* local timezone, from the connector's UTC
+// instant; fall back to the raw venue-local date/time when it's missing.
+function kickDate(r) {
+  if (r.kickoff_utc) { const d = new Date(r.kickoff_utc); if (!isNaN(d)) return d; }
+  return null;
+}
+function localKick(r) {
+  const d = kickDate(r);
+  if (d) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return String(r.time || "").split(" ")[0] || "";
+}
+function localShortDate(r) {
+  const d = kickDate(r);
+  return d ? `${MON[d.getMonth()]} ${d.getDate()}` : shortDate(r.date);
 }
 
 function teamLine(label, flag, raw, score, otherScore, played) {
@@ -29,7 +43,7 @@ function card(r, x, y) {
   const rs = r.round_short;
   const played = num(r.played) === 1;
   const s1 = num(r.score1), s2 = num(r.score2);
-  const meta = played ? "FT" : `${shortDate(r.date)} · ${esc(kickoff(r.time)) || "TBD"}`;
+  const meta = played ? "FT" : `${esc(localShortDate(r))} · ${esc(localKick(r)) || "TBD"}`;
   return (
     `<div class="wc-br-card r-${rs}" style="left:${x}px;top:${y}px;width:${CARD_W}px">` +
     `<div class="wc-br-meta"><span>M${r.num}</span><span>${meta}</span></div>` +
@@ -123,7 +137,7 @@ function draw(root, records, cfg) {
     t.innerHTML =
       `<div class="wc-br-third-label">🥉 Third-place play-off</div>` +
       `<div class="wc-br-card r-3rd" style="position:relative;width:${CARD_W}px">` +
-      `<div class="wc-br-meta"><span>M${third.num}</span><span>${num(third.played) === 1 ? "FT" : shortDate(third.date) + " · " + (esc(kickoff(third.time)) || "TBD")}</span></div>` +
+      `<div class="wc-br-meta"><span>M${third.num}</span><span>${num(third.played) === 1 ? "FT" : esc(localShortDate(third)) + " · " + (esc(localKick(third)) || "TBD")}</span></div>` +
       teamLine(third.team1_label || third.team1, third.flag1, third.team1, num(third.score1), num(third.score2), num(third.played) === 1) +
       teamLine(third.team2_label || third.team2, third.flag2, third.team2, num(third.score2), num(third.score1), num(third.played) === 1) +
       `</div>`;

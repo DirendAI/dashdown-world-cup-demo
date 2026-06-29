@@ -16,6 +16,7 @@ Tables exposed: matches · goals · standings · teams · stadiums.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import logging
 import re
@@ -127,6 +128,38 @@ def _bucket(b: int) -> str:
     return "90+"
 
 
+_OFFSET_RE = re.compile(r"UTC([+-])(\d{1,2})(?::?(\d{2}))?$")
+
+
+def _kickoff_utc(date: str, t: str) -> str:
+    """Combine an openfootball date + offset-tagged kickoff ("13:00 UTC-6") into a
+    UTC ISO-8601 instant ("2026-06-11T19:00:00Z"), so the browser can re-render it
+    in each visitor's local timezone. The feed's explicit offsets already account
+    for DST, so no zone guessing is needed. Returns "" when there's no parseable
+    offset — the front-end then falls back to the raw venue-local string."""
+    if not date or not t:
+        return ""
+    parts = str(t).split()
+    if len(parts) < 2:
+        return ""
+    mo = _OFFSET_RE.match(parts[1].strip())
+    if not mo:
+        return ""
+    try:
+        hh, mm = (int(x) for x in parts[0].split(":")[:2])
+        y, mon, d = (int(x) for x in str(date).split("-")[:3])
+    except (ValueError, IndexError):
+        return ""
+    sign = 1 if mo.group(1) == "+" else -1
+    tz = _dt.timezone(sign * _dt.timedelta(hours=int(mo.group(2)),
+                                           minutes=int(mo.group(3) or 0)))
+    try:
+        local = _dt.datetime(y, mon, d, hh, mm, tzinfo=tz)
+    except ValueError:
+        return ""
+    return local.astimezone(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 # --------------------------------------------------------------------------- #
 # Transform  (nested JSON  ->  five flat tables)                               #
 # --------------------------------------------------------------------------- #
@@ -191,6 +224,7 @@ def build_frames(base_url: str) -> dict[str, tuple[list[dict], list[str], list[s
             "num": m["_num"], "stage": stage, "round": r,
             "round_short": _ROUND_SHORT.get(r, r), "round_order": _round_order(r),
             "date": m["date"], "time": m.get("time", ""),
+            "kickoff_utc": _kickoff_utc(m["date"], m.get("time", "")),
             "team1": t1, "team2": t2,
             "team1_label": _team_label(t1), "team2_label": _team_label(t2),
             "code1": code(t1), "code2": code(t2), "flag1": flag(t1), "flag2": flag(t2),

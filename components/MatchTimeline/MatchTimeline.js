@@ -10,9 +10,29 @@ function dayLabel(iso) {
   const d = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
   return `${WD[d.getUTCDay()]} · ${MON[p[1] - 1]} ${p[2]}`;
 }
-function kickoff(t) {
-  // "20:00 UTC-6" -> "20:00"
-  return String(t || "").split(" ")[0] || "";
+function kickInstant(r) {
+  // A real Date for the kickoff, from the connector's UTC instant. null if absent.
+  if (r.kickoff_utc) { const d = new Date(r.kickoff_utc); if (!isNaN(d)) return d; }
+  return null;
+}
+function localKick(r) {
+  // Kickoff in the *visitor's* local timezone (locale-aware 12/24h). Falls back
+  // to the raw venue-local "time" string when no UTC instant is available.
+  const d = kickInstant(r);
+  if (d) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return String(r.time || "").split(" ")[0] || "";
+}
+function dayKey(r) {
+  // Group by the *local* calendar day, so a late kickoff that crosses midnight
+  // in the viewer's zone lands under the right date.
+  const d = kickInstant(r);
+  return d
+    ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    : String(r.date).slice(0, 10);
+}
+function dayLabelLocal(r) {
+  const d = kickInstant(r);
+  return d ? `${WD[d.getDay()]} · ${MON[d.getMonth()]} ${d.getDate()}` : dayLabel(r.date);
 }
 function num(v) { return v === "" || v == null ? null : Number(v); }
 
@@ -33,9 +53,10 @@ function matchRow(r) {
   const grp = r.group ? ` ${String(r.group).replace("Group ", "Grp ")}` : "";
   const home = teamCell(r.team1_label || r.team1, r.flag1, played && s1 > s2, "home");
   const away = teamCell(r.team2_label || r.team2, r.flag2, played && s2 > s1, "away");
+  const tzHint = r.time ? ` title="${esc(String(r.time))} at the venue — shown in your local time"` : "";
   const mid = played
     ? `<span class="wc-tl-score">${s1}<span class="dash">–</span>${s2}</span>`
-    : `<span class="wc-tl-kick">${esc(kickoff(r.time)) || "TBD"}</span>`;
+    : `<span class="wc-tl-kick"${tzHint}>${esc(localKick(r)) || "TBD"}</span>`;
   const venue = r.ground
     ? `<span class="wc-tl-venue">${esc(r.stadium ? r.stadium + " · " : "")}${esc(r.ground)}</span>`
     : "";
@@ -50,8 +71,12 @@ function matchRow(r) {
 
 function draw(el, records, cfg) {
   let rows = records.filter((r) => r.date);
-  rows.sort((a, b) => String(a.date).localeCompare(String(b.date)) ||
-    String(a.time).localeCompare(String(b.time)));
+  const ord = (r) => {
+    const d = kickInstant(r);
+    return d ? d.getTime()
+      : Date.parse(`${String(r.date).slice(0, 10)}T${String(r.time || "").split(" ")[0] || "00:00"}:00Z`) || 0;
+  };
+  rows.sort((a, b) => ord(a) - ord(b));
   if (cfg.order === "desc") rows.reverse();
   if (cfg.limit) rows = rows.slice(0, cfg.limit);
   if (!rows.length) { el.innerHTML = `<div class="wc-tl-skel">${esc(cfg.empty)}</div>`; return; }
@@ -59,7 +84,7 @@ function draw(el, records, cfg) {
   const byDay = [];
   let cur = null;
   for (const r of rows) {
-    const d = String(r.date).slice(0, 10);
+    const d = dayKey(r);
     if (!cur || cur.day !== d) { cur = { day: d, items: [] }; byDay.push(cur); }
     cur.items.push(r);
   }
@@ -69,7 +94,7 @@ function draw(el, records, cfg) {
       const upcoming = g.items.every((r) => num(r.played) !== 1);
       return (
         `<li class="wc-tl-day${upcoming ? " future" : ""}">` +
-        `<div class="wc-tl-date"><span class="wc-tl-dot"></span>${esc(dayLabel(g.day))}` +
+        `<div class="wc-tl-date"><span class="wc-tl-dot"></span>${esc(dayLabelLocal(g.items[0]))}` +
         `<span class="wc-tl-count">${g.items.length} match${g.items.length > 1 ? "es" : ""}</span></div>` +
         `<div class="wc-tl-list">${g.items.map(matchRow).join("")}</div>` +
         `</li>`

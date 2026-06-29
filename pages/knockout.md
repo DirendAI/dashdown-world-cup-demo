@@ -30,7 +30,7 @@ SELECT
 ## 🏆 The bracket
 
 :::query name=knockout connector=main
-SELECT num, round, round_short, round_order, date, "time",
+SELECT num, round, round_short, round_order, date, "time", kickoff_utc,
        team1, team2, team1_label, team2_label, flag1, flag2,
        score1, score2, played, ground, stadium
 FROM matches
