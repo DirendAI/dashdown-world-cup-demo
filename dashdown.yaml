@@ -19,6 +19,14 @@ format:
   locale: en-US
   date_format: MMM D
 
+# LLM provider for <Ask /> commentary — the natural-language read-outs of query
+# results on the Overview page. The key is read from the environment so it never
+# lands in git; `dashdown build` bakes one answer per <Ask> into the static site.
+llm:
+  provider: mistral
+  api_key: ${MISTRAL_API_KEY}
+  model: mistral-small-latest
+
 sidebar:
   collapsed: false
   toggle: true

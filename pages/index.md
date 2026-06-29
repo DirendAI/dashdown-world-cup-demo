@@ -30,6 +30,34 @@ SELECT
   <Counter data={kpis} column="teams_remaining" label="Teams still standing" suffix=" / 48" color="primary" />
 </Grid>
 
+## 📰 The story so far
+
+A live read-out of the latest results — refreshed straight from the feed each time the
+dashboard rebuilds.
+
+:::query name=recent_results connector=main
+SELECT
+  date,
+  round_short                AS round,
+  concat(flag1, ' ', team1)  AS home,
+  scoreline                  AS score,
+  concat(team2, ' ', flag2)  AS away,
+  stadium,
+  country
+FROM matches
+WHERE played = 1
+ORDER BY date DESC, num DESC
+LIMIT 12
+:::
+
+<Ask
+  data={recent_results}
+  label="AI match brief — the latest results, read out loud"
+  ask="You are a football correspondent covering the 2026 World Cup. From these most-recent results (newest first), write a lively 3–4 sentence round-up: lead with the standout scoreline, flag any upset or statement win, and capture the mood of the latest matchday. Name the teams. Stay concrete — don't invent anything that isn't in the data."
+  max_rows=12
+  cache_ttl=1800
+/>
+
 So far, <Value data={kpis} column="scorers" /> different players have found the net. Here is *when* every one of those <Value data={kpis} column="goals_total" /> goals arrived.
 
 ## ⏱️ Goal-timing heatmap
@@ -65,6 +93,13 @@ ORDER BY goals DESC
   <BarChart data={top_scorers} x="player" y="goals" horizontal sort_by="goals" title="Top scorers — Golden Boot race" col-span=1 height=380 />
   <PieChart data={goals_by_confed} x="confed" y="goals" title="Goals by confederation" col-span=1 height=380 />
 </Grid>
+
+<Ask
+  data={top_scorers}
+  label="Who's winning the Golden Boot?"
+  ask="In two sentences, summarise the Golden Boot race from this top-scorer list: who leads, how tight the chasing pack is, and call out anyone whose tally leans heavily on penalties. Name the players; don't speculate beyond the data."
+  cache_ttl=1800
+/>
 
 ## The rhythm of the tournament
 

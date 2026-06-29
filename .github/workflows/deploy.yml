@@ -35,11 +35,16 @@ jobs:
 
       - name: Install Dashdown
         # Pinned to match the version this project was authored against.
-        run: pip install dashdown-md==0.1.5
+        # The [mistral] extra pulls the SDK the <Ask /> commentary needs.
+        run: pip install 'dashdown-md[mistral]==0.1.5'
 
       - name: Build static site
         # Pre-renders pages + fetches the live World Cup feed into query snapshots.
         # Pages use a relative <base>, so the site works under the repo subpath.
+        # MISTRAL_API_KEY powers the <Ask /> read-outs and is REQUIRED: the llm:
+        # block in dashdown.yaml makes the build fail to load without it.
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: dashdown build -o ./dist
 
       - name: Inject PostHog analytics
