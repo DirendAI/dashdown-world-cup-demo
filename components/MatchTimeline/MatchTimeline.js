@@ -48,14 +48,23 @@ function teamCell(name, flag, win, side) {
 function matchRow(r) {
   const played = num(r.played) === 1;
   const s1 = num(r.score1), s2 = num(r.score2);
+  const p1 = num(r.pen1), p2 = num(r.pen2);
+  const result = String(r.result || "");
   const stage = String(r.stage || "").toLowerCase() === "knockout" ? "knockout" : "group";
   const tag = r.round_short || r.round || "";
   const grp = r.group ? ` ${String(r.group).replace("Group ", "Grp ")}` : "";
-  const home = teamCell(r.team1_label || r.team1, r.flag1, played && s1 > s2, "home");
-  const away = teamCell(r.team2_label || r.team2, r.flag2, played && s2 > s1, "away");
+  // Winner from the match result, so a penalty/extra-time winner is bolded even
+  // when the 90/120-min score is level; fall back to the goal score if absent.
+  const home = teamCell(r.team1_label || r.team1, r.flag1, played && (result ? result === "1" : s1 > s2), "home");
+  const away = teamCell(r.team2_label || r.team2, r.flag2, played && (result ? result === "2" : s2 > s1), "away");
   const tzHint = r.time ? ` title="${esc(String(r.time))} at the venue — shown in your local time"` : "";
+  // How a level tie was settled, shown under the score: shootout tally, else a.e.t.
+  const decider = p1 != null ? `${p1}–${p2} pens` : (String(r.decided) === "AET" ? "a.e.t." : "");
+  const score =
+    `<span class="wc-tl-score">${s1}<span class="dash">–</span>${s2}</span>` +
+    (decider ? `<span class="wc-tl-decider">${esc(decider)}</span>` : "");
   const mid = played
-    ? `<span class="wc-tl-score">${s1}<span class="dash">–</span>${s2}</span>`
+    ? `<span class="wc-tl-mid">${score}</span>`
     : `<span class="wc-tl-kick"${tzHint}>${esc(localKick(r)) || "TBD"}</span>`;
   const venue = r.ground
     ? `<span class="wc-tl-venue">${esc(r.stadium ? r.stadium + " · " : "")}${esc(r.ground)}</span>`

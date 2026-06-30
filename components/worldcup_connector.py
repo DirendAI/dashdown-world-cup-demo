@@ -201,24 +201,73 @@ def build_frames(base_url: str) -> dict[str, tuple[list[dict], list[str], list[s
                     advanced.add(t)
 
     # ---- matches ----
+    # Two passes. First decide every played tie — penalty- and extra-time-aware, so
+    # a knockout match level after 90/120 min is settled by its shootout, not left a
+    # draw. Then build the rows, resolving each later round's "W##"/"L##" feeder refs
+    # to the real qualifier as soon as that tie has a winner (the upstream feed only
+    # fills a slot in once the feeder was won in regulation, so penalty winners would
+    # otherwise never reach the next round).
+    decided_by_num = {}   # _num -> computed score/decision fields
+    winner_of = {}        # _num -> winning team name
+    loser_of = {}         # _num -> losing team name
+    for m in matches_in:
+        score = m.get("score") or {}
+        ft, ht, et, pen = score.get("ft"), score.get("ht"), score.get("et"), score.get("p")
+        played = 1 if ft else 0
+        t1, t2 = m.get("team1", ""), m.get("team2", "")
+        fs = et or ft                       # final scoreline (after extra time if any)
+        s1, s2 = (fs[0], fs[1]) if fs else (None, None)
+        h1, h2 = (ht[0], ht[1]) if ht else (None, None)
+        p1, p2 = (pen[0], pen[1]) if pen else (None, None)
+        result = winner = decided = ""
+        if played:
+            if pen and p1 != p2:            # penalty shootout settles a level tie
+                result, decided = ("1" if p1 > p2 else "2"), "PENS"
+            elif s1 > s2:
+                result, decided = "1", ("AET" if et else "FT")
+            elif s2 > s1:
+                result, decided = "2", ("AET" if et else "FT")
+            else:
+                result, decided = "X", ("AET" if et else "FT")   # genuine draw (groups)
+            winner = t1 if result == "1" else t2 if result == "2" else ""
+            if winner:
+                winner_of[m["_num"]] = winner
+                loser_of[m["_num"]] = t2 if result == "1" else t1
+        decided_by_num[m["_num"]] = {
+            "played": played, "s1": s1, "s2": s2, "h1": h1, "h2": h2,
+            "p1": p1, "p2": p2, "result": result, "winner": winner, "decided": decided,
+        }
+
+    def _resolve(name):
+        """Turn a "W##"/"L##" feeder ref into the real qualifier once that tie is
+        decided; leave it as a ref while the feeder is still unplayed."""
+        seen = set()
+        while _is_ref(name) and name not in seen:
+            seen.add(name)
+            n = int(name[1:])
+            repl = winner_of.get(n) if name[0] == "W" else loser_of.get(n)
+            if not repl:
+                break
+            name = repl
+        return name
+
     matches = []
     for m in matches_in:
         r = m["round"]
         stage = "Knockout" if r in _KO else "Group"
-        ft = (m.get("score") or {}).get("ft")
-        ht = (m.get("score") or {}).get("ht")
-        played = 1 if ft else 0
-        s1, s2 = (ft[0], ft[1]) if ft else (None, None)
-        h1, h2 = (ht[0], ht[1]) if ht else (None, None)
-        t1, t2 = m.get("team1", ""), m.get("team2", "")
-        result = winner = ""
+        c = decided_by_num[m["_num"]]
+        played, result, decided = c["played"], c["result"], c["decided"]
+        s1, s2, p1, p2, h1, h2 = c["s1"], c["s2"], c["p1"], c["p2"], c["h1"], c["h2"]
+        t1, t2 = _resolve(m.get("team1", "")), _resolve(m.get("team2", ""))
+        winner = _resolve(c["winner"])
         if played:
-            if s1 > s2:
-                result, winner = "1", t1
-            elif s2 > s1:
-                result, winner = "2", t2
-            else:
-                result = "X"
+            scoreline = f"{s1}–{s2}"
+            if decided == "PENS":
+                scoreline += f" ({p1}–{p2} pens)"
+            elif decided == "AET":
+                scoreline += " (a.e.t.)"
+        else:
+            scoreline = ""
         st = stadiums.get(m.get("ground", ""), {})
         matches.append({
             "num": m["_num"], "stage": stage, "round": r,
@@ -230,11 +279,12 @@ def build_frames(base_url: str) -> dict[str, tuple[list[dict], list[str], list[s
             "code1": code(t1), "code2": code(t2), "flag1": flag(t1), "flag2": flag(t2),
             "group": m.get("group", ""),
             "score1": s1, "score2": s2, "ht1": h1, "ht2": h2,
+            "pen1": p1, "pen2": p2, "decided": decided,
             "total_goals": (s1 + s2) if played else None,
             "result": result, "winner": winner, "played": played,
             "ground": m.get("ground", ""), "stadium": st.get("stadium", ""),
             "country": st.get("country", ""),
-            "scoreline": (f"{s1}–{s2}" if played else ""),
+            "scoreline": scoreline,
             "matchup": (f"{t1} vs {t2}" if stage == "Group"
                         else f"{_team_label(t1)} vs {_team_label(t2)}"),
         })
@@ -326,7 +376,7 @@ def build_frames(base_url: str) -> dict[str, tuple[list[dict], list[str], list[s
     return {
         "matches": (matches, list(matches[0].keys()),
                     ["num", "round_order", "score1", "score2", "ht1", "ht2",
-                     "total_goals", "played"]),
+                     "pen1", "pen2", "total_goals", "played"]),
         "goals": (goals, list(goals[0].keys()) if goals else
                   ["match_num", "date", "round", "group", "ground", "team", "opponent",
                    "code", "flag", "confed", "player", "minute", "minute_num", "bucket",

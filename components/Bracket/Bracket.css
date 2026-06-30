@@ -50,6 +50,12 @@
   font-variant-numeric: tabular-nums; font-weight: 800; font-size: 0.82rem;
   min-width: 1rem; text-align: right;
 }
+/* Penalty-shootout tally, shown in parens next to the level full-time score. */
+.wc-br-pen {
+  font-variant-numeric: tabular-nums; font-size: 0.64rem; font-weight: 700;
+  color: oklch(var(--bc) / 0.45);
+}
+.wc-br-team.win .wc-br-pen { color: oklch(var(--bc) / 0.7); }
 
 .wc-br-third {
   margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed oklch(var(--b3));

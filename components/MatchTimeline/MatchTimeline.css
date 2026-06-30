@@ -60,12 +60,18 @@
 .wc-tl-team.win .wc-tl-name { font-weight: 800; }
 .wc-tl-team:not(.win) .wc-tl-name { color: oklch(var(--bc) / 0.72); }
 .wc-tl-flag { font-size: 1.15rem; line-height: 1; }
+.wc-tl-mid { display: flex; flex-direction: column; align-items: center; gap: 0.12rem; }
 .wc-tl-score {
   font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1rem;
   background: oklch(var(--n)); color: oklch(var(--nc));
   padding: 0.1rem 0.5rem; border-radius: 0.4rem; white-space: nowrap;
 }
 .wc-tl-score .dash { opacity: 0.55; margin: 0 0.1rem; }
+/* How a level knockout tie was settled — penalty tally or "a.e.t." */
+.wc-tl-decider {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+  color: oklch(var(--bc) / 0.55); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
 .wc-tl-kick {
   font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.8rem;
   color: var(--wc-blue); border: 1px solid oklch(var(--b3));

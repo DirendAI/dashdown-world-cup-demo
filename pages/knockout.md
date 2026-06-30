@@ -32,7 +32,7 @@ SELECT
 :::query name=knockout connector=main
 SELECT num, round, round_short, round_order, date, "time", kickoff_utc,
        team1, team2, team1_label, team2_label, flag1, flag2,
-       score1, score2, played, ground, stadium
+       score1, score2, pen1, pen2, decided, result, played, ground, stadium
 FROM matches
 WHERE stage = 'Knockout'
 ORDER BY round_order, num

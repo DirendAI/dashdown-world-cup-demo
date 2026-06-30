@@ -41,27 +41,43 @@ function localShortDate(r) {
   return d ? `${MON[d.getMonth()]} ${d.getDate()}` : shortDate(r.date);
 }
 
-function teamLine(label, flag, raw, score, otherScore, played) {
+// One team row. `pen` is the side's penalty-shootout tally (shown only when the tie
+// went to spot-kicks); `isWinner` comes from the match result, so the team that won
+// on penalties is bolded even though the 90/120-min score is level.
+function teamLine(label, flag, raw, score, pen, isWinner, played) {
   const isRef = refNum(raw) != null;
-  const win = played && score != null && otherScore != null && score > otherScore;
   const fl = isRef ? `<span class="wc-br-seed">⟶</span>` : `<span class="wc-br-flag">${esc(flag || "")}</span>`;
+  const penTxt = played && pen != null ? `<span class="wc-br-pen">(${pen})</span>` : "";
   const sc = played ? `<span class="wc-br-score">${score}</span>` : "";
   return (
-    `<div class="wc-br-team${win ? " win" : ""}${isRef ? " ref" : ""}">` +
-    `${fl}<span class="wc-br-name">${esc(label || "TBD")}</span>${sc}</div>`
+    `<div class="wc-br-team${isWinner ? " win" : ""}${isRef ? " ref" : ""}">` +
+    `${fl}<span class="wc-br-name">${esc(label || "TBD")}</span>${sc}${penTxt}</div>`
+  );
+}
+
+// Meta line right-hand label: how a played tie was decided (penalties / extra time /
+// full time), or the upcoming kickoff for a match still to be played.
+function statusMeta(r) {
+  if (num(r.played) !== 1) return `${esc(localShortDate(r))} · ${esc(localKick(r)) || "TBD"}`;
+  const d = String(r.decided || "");
+  return d === "PENS" ? "Pens" : d === "AET" ? "AET" : "FT";
+}
+
+// Card body (meta + both team rows), shared by the bracket grid and the 3rd-place card.
+function cardInner(r) {
+  const played = num(r.played) === 1;
+  const result = String(r.result || "");
+  return (
+    `<div class="wc-br-meta"><span>M${r.num}</span><span>${statusMeta(r)}</span></div>` +
+    teamLine(r.team1_label || r.team1, r.flag1, r.team1, num(r.score1), num(r.pen1), played && result === "1", played) +
+    teamLine(r.team2_label || r.team2, r.flag2, r.team2, num(r.score2), num(r.pen2), played && result === "2", played)
   );
 }
 
 function card(r, x, y) {
-  const rs = r.round_short;
-  const played = num(r.played) === 1;
-  const s1 = num(r.score1), s2 = num(r.score2);
-  const meta = played ? "FT" : `${esc(localShortDate(r))} · ${esc(localKick(r)) || "TBD"}`;
   return (
-    `<div class="wc-br-card r-${rs}" style="left:${x}px;top:${y}px;width:${CARD_W}px">` +
-    `<div class="wc-br-meta"><span>M${r.num}</span><span>${meta}</span></div>` +
-    teamLine(r.team1_label || r.team1, r.flag1, r.team1, s1, s2, played) +
-    teamLine(r.team2_label || r.team2, r.flag2, r.team2, s2, s1, played) +
+    `<div class="wc-br-card r-${r.round_short}" style="left:${x}px;top:${y}px;width:${CARD_W}px">` +
+    cardInner(r) +
     `</div>`
   );
 }
@@ -157,9 +173,7 @@ function draw(root, records, cfg) {
     t.innerHTML =
       `<div class="wc-br-third-label">🥉 Third-place play-off</div>` +
       `<div class="wc-br-card r-3rd" style="position:relative;width:${CARD_W}px">` +
-      `<div class="wc-br-meta"><span>M${third.num}</span><span>${num(third.played) === 1 ? "FT" : esc(localShortDate(third)) + " · " + (esc(localKick(third)) || "TBD")}</span></div>` +
-      teamLine(third.team1_label || third.team1, third.flag1, third.team1, num(third.score1), num(third.score2), num(third.played) === 1) +
-      teamLine(third.team2_label || third.team2, third.flag2, third.team2, num(third.score2), num(third.score1), num(third.played) === 1) +
+      cardInner(third) +
       `</div>`;
     root.appendChild(t);
   }
