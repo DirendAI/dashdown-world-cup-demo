@@ -36,7 +36,7 @@ jobs:
       - name: Install Dashdown
         # Pinned to match the version this project was authored against.
         # The [mistral] extra pulls the SDK the <Ask /> commentary needs.
-        run: pip install 'dashdown-md[mistral]==0.1.5'
+        run: pip install 'dashdown-md[mistral]'
 
       - name: Build static site
         # Pre-renders pages + fetches the live World Cup feed into query snapshots.
